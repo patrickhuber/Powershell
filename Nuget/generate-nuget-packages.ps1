@@ -130,14 +130,61 @@ function GetFrameworkName([System.Reflection.Assembly] $assembly)
     return $frameworkVersion
 }
 
+function Coalesce([string] $value, [string] $default)
+{
+    if([string]::IsNullOrWhiteSpace($value))
+    {
+        return $default
+    }
+    return $value
+}
+
+function RemoveByXPath
+{
+    param(
+        [Parameter(Mandatory=$true)] [xml]    $xml,
+        [Parameter(Mandatory=$true)] [string] $xpath        
+    )
+    $node = $xml.SelectSingleNode($xpath)
+    [void]$node.ParentNode.RemoveChild($node)    
+}
+
 function UpdateNuspecFileFromAssemblyInformation([string] $nuspecFile, [System.Reflection.Assembly] $assembly)
 {    
-    $assemblyInfo = New-Object AssemblyInfo($assembly)
+    $assemblyInfo = New-Object AssemblyInfo($assembly)    
+    $assemblyName = $assembly.GetName().Name
+    $defaultCompanyName = $assemblyName.Split('.')[0]
+
     [xml] $nuspecXml = Get-Content $nuspecFile
-    $nuspecXml.package.metadata.id = $assembly.GetName().Name
+    $nuspecXml.package.metadata.id = $assemblyName
     $nuspecXml.package.metadata.version = $assemblyInfo.Version
-    $nuspecXml.package.metadata.owners = $assemblyInfo.Company
-    $nuspecXml.package.metadata.description = $assemblyInfo.Description
+    $nuspecXml.package.metadata.owners = Coalesce $assemblyInfo.Company $defaultCompanyName
+    $nuspecXml.package.metadata.authors = Coalesce $assemblyInfo.Company $defaultCompanyName
+    $nuspecXml.package.metadata.description = Coalesce $assemblyInfo.Description $assemblyName
+    RemoveByXPath $nuspecXml "/package/metadata/iconUrl"
+    RemoveByXPath $nuspecXml "/package/metadata/projectUrl"
+    RemoveByXPath $nuspecXml "/package/metadata/licenseUrl"
+    RemoveByXPath $nuspecXml "/package/metadata/tags"
+    RemoveByXPath $nuspecXml "/package/metadata/releaseNotes"
+
+    # create group node to store dependencies (nuget v2)
+    $group = $nuspecXml.CreateElement('group')
+    $nuspecXml.package.metadata.dependencies.AppendChild($group) | Out-Null
+    
+    # remove default dependency
+    RemoveByXPath $nuspecXml "/package/metadata/dependencies/dependency"
+    
+    # build the dependendencies
+    foreach($reference in $assembly.GetReferencedAssemblies())
+    {        
+        #if(-not ($reference.Name -eq "System" -or $reference.Name.StartsWith("System.") -or $reference.Name -eq "mscorlib"))
+        #{
+            $dependency = $nuspecXml.CreateElement('dependency')
+            $dependency.SetAttribute("id", $reference.Name)
+            $dependency.SetAttribute("version", $reference.Version)
+            $group.AppendChild($dependency) | Out-Null
+        #}
+    }
     $nuspecXml.Save($nuspecFile)
 }
 
@@ -169,7 +216,7 @@ foreach($assemblyFile in $assemblyEnumeration)
     # generate package folder if it doesn't exist
     if(-not(Test-Path -Path $packageAssemblyPath))
     {
-        New-Item -ItemType directory -Path $packageAssemblyPath
+        New-Item -ItemType directory -Path $packageAssemblyPath | Out-Null
     }
 
     # copy the assembly into its proper folder
@@ -198,6 +245,10 @@ foreach($assemblyFile in $assemblyEnumeration)
 # find all nuspec files
 $nuspecEnumeration = [System.IO.Directory]::EnumerateFiles("$storageDir", "*.nuspec", [System.IO.SearchOption]::AllDirectories)
 
+if(-not(Test-Path "$storageDir\Feed"))
+{
+    mkdir "$storageDir\Feed" | Out-Null
+}
 foreach($nuspecFile in $nuspecEnumeration)
 {
     (. $nuget pack $nuspecFile)

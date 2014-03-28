@@ -105,6 +105,14 @@ function Get-TeamFoundationConfgiurationServerGroups
     param(
         [Parameter(ParameterSetName="Uri", Mandatory=$true, Position=0)]
         [uri]$uri)
+    
+    # create the team foundation server configuration 
+    $teamFoundationConfigurationServer = Get-TeamFoundationConfigurationServer $uri
+
+    # create the idenentity management service
+    $identityManagementService = $teamFoundationConfigurationServer.GetService([IIdentityManagementService])
+
+    return $identityManagementService.ListApplicationGroups($null, 'None')
 }
 
 <# Get all Groups for the Collection #>
@@ -157,4 +165,9 @@ function Get-TeamProjectGroups
 
     # use the identity management service to return the list of project groups
     return $identityManagementService.ListApplicationGroups($project.Uri, 'None')
+}
+
+function Get-GroupMembership
+{
+    
 }

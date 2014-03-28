@@ -18,16 +18,16 @@ ModuleVersion = '1.0'
 GUID = 'd0a9150d-b6a4-4b17-a325-e3a24fed0aa9'
 
 # Author of this module
-Author = 'User01'
+Author = 'Patrick Huber'
 
 # Company or vendor of this module
-CompanyName = 'Unknown'
+CompanyName = 'Powershell'
 
 # Copyright statement for this module
-Copyright = '(c) 2012 User01. All rights reserved.'
+Copyright = '(c) 2014 Patrick Huber. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'Simplifies common operations with TFS'
 
 # Minimum version of the Windows PowerShell engine required by this module
 # PowerShellVersion = ''

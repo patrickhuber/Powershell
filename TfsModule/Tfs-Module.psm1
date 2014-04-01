@@ -216,3 +216,25 @@ function Get-TeamProjectGroupMembership
     
     return $identityService.ReadIdentities($identityDescriptors, 'Expanded', 'None')
 }
+
+function Get-TeamProjectCollectionGroupMembership
+{
+    [CmdletBinding()]    
+    param(        
+        [Parameter(Mandatory=$true, Position=0)]
+        [uri]$uri, 
+        [Parameter(Mandatory=$true, Position=1)]
+        [string]$collectionName,
+        [Parameter(Mandatory=$true, Position=3)]
+        [string]$groupName)
+}
+
+function Get-TeamFoundationConfgiurationServerGroupMembership
+{
+    [CmdletBinding()]    
+    param(        
+        [Parameter(Mandatory=$true, Position=0)]
+        [uri]$uri,
+        [Parameter(Mandatory=$true, Position=3)]
+        [string]$groupName)
+}

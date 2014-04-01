@@ -30,8 +30,31 @@ function Join-Uri
     return New-Object uri $combinedPath
 }
 
+<# Gets the TfsTeamProjectCollection object #>
+function Get-TfsTeamProjectCollection
+{
+    [CmdletBinding(DefaultParametersetName="uri")]
+    param(
+        [Parameter(ParameterSetName="Uri", Mandatory=$true, Position=0)]
+        [uri]$uri,
+        [Parameter(ParameterSetName="Uri", mandatory=$true, Position=1)]
+        [string]$collectionName,
+        [Parameter(ParameterSetName="CollectionUri", mandatory=$true, Position=0)]
+        [string]$collectionUri)
+    
+    switch($PSCmdlet.ParameterSetName)
+    {        
+        "Uri" 
+        {
+            $collectionUri = Join-Uri $uri $collectionName
+            break 
+        }
+    }
+    return [TfsTeamProjectCollectionFactory]::GetTeamProjectCollection($collectionUri);
+}
+
 <# Gets the TeamFoundationConfigurationServer object #>
-function Get-TeamFoundationConfigurationServer
+function Get-TfsConfigurationServer
 {
     [CmdletBinding()]
     param(
@@ -49,7 +72,7 @@ function Get-TeamProjectCollections
         [Uri]$uri)
     
     # get the configuraiton server 
-    $configurationServer = Get-TeamFoundationConfigurationServer -uri $uri
+    $configurationServer = Get-TfsConfigurationServer -uri $uri
     $configurationServer.EnsureAuthenticated()
     $catalogNode = $configurationServer.CatalogNode
     
@@ -107,7 +130,7 @@ function Get-TeamFoundationConfgiurationServerGroups
         [uri]$uri)
     
     # create the team foundation server configuration 
-    $teamFoundationConfigurationServer = Get-TeamFoundationConfigurationServer $uri
+    $teamFoundationConfigurationServer = Get-TfsConfigurationServer $uri
 
     # create the idenentity management service
     $identityManagementService = $teamFoundationConfigurationServer.GetService([IIdentityManagementService])
@@ -167,7 +190,29 @@ function Get-TeamProjectGroups
     return $identityManagementService.ListApplicationGroups($project.Uri, 'None')
 }
 
-function Get-GroupMembership
+function Get-TeamProjectGroupMembership
 {
+    [CmdletBinding()]    
+    param(        
+        [Parameter(Mandatory=$true, Position=0)]
+        [uri]$uri, 
+        [Parameter(Mandatory=$true, Position=1)]
+        [string]$collectionName,         
+        [Parameter(Mandatory=$true, Position=2)]
+        [string]$projectName,
+        [Parameter(Mandatory=$true, Position=3)]
+        [string]$groupName)
     
+    # select the first matching team project group 
+    $teamProjectGroup = Get-TeamProjectGroups $uri, $collectionName, $projectName | 
+        where { $_.DisplayName -eq $groupName}
+        select $_ -First 1
+    
+    $tfsTeamProjectCollection = Get-TfsTeamProjectCollection -uri $uri -collectionName $collectionName
+    $identityService = $tfsTeamProjectCollection.GetService([IIdentityManagementService])
+    $identityDescriptors = $teamProjectGroup.Members | 
+        select-object -First 1 | 
+        new-object [IdentityDescriptor] $_.IdentityType $_Identifier
+    
+    return $identityService.ReadIdentities($identityDescriptors, 'Expanded', 'None')
 }

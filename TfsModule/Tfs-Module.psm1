@@ -15,6 +15,7 @@ $acceleratorsType::Add("accelerators", $acceleratorsType)
 [accelerators]::Add('CatalogNode', "Microsoft.TeamFoundation.Framework.Client.CatalogNode, Microsoft.TeamFoundation.Client, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
 [accelerators]::Add('IIdentityManagementService', "Microsoft.TeamFoundation.Framework.Client.IIdentityManagementService, Microsoft.TeamFoundation.Client, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
 [accelerators]::Add('ICommonStructureService', "Microsoft.TeamFoundation.Server.ICommonStructureService, Microsoft.TeamFoundation.Client, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
+[accelerators]::Add('IdentityDescriptor', "Microsoft.TeamFoundation.Framework.Client.IdentityDescriptor, Microsoft.TeamFoundation.Client, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")
 
 <# Joins uri to a child path#>
 function Join-Uri
@@ -122,7 +123,7 @@ function Get-TeamProjects
 }
 
 <# Get all top level groups for the tfs server #>
-function Get-TeamFoundationConfgiurationServerGroups
+function Get-TeamFoundationConfigurationServerGroups
 {
     [CmdletBinding(DefaultParametersetName="Uri")]    
     param(
@@ -187,7 +188,14 @@ function Get-TeamProjectGroups
     $project = $commonStructureService.GetProjectFromName($projectName)
 
     # use the identity management service to return the list of project groups
-    return $identityManagementService.ListApplicationGroups($project.Uri, 'None')
+    $teamProjectApplicationGroups = $identityManagementService.ListApplicationGroups($project.Uri, 'None')
+
+    $teamProjectScopeName = $identityManagementService.GetScopeName($project.Uri);
+
+    $teamProjectGroupDescriptorArray = $teamProjectApplicationGroups |
+        select -ExpandProperty Descriptor
+        
+    return $identityManagementService.ReadIdentities($teamProjectGroupDescriptorArray, 'Expanded', 'ExtendedProperties')
 }
 
 function Get-TeamProjectGroupMembership
@@ -205,14 +213,15 @@ function Get-TeamProjectGroupMembership
     
     # select the first matching team project group 
     $teamProjectGroup = Get-TeamProjectGroups $uri, $collectionName, $projectName | 
-        where { $_.DisplayName -eq $groupName}
-        select $_ -First 1
+        where { $_.DisplayName -eq $groupName} |
+        select -First 1
     
     $tfsTeamProjectCollection = Get-TfsTeamProjectCollection -uri $uri -collectionName $collectionName
     $identityService = $tfsTeamProjectCollection.GetService([IIdentityManagementService])
-    $identityDescriptors = $teamProjectGroup.Members | 
-        select-object -First 1 | 
-        new-object [IdentityDescriptor] $_.IdentityType $_Identifier
+    $identityDescriptors = $teamProjectGroup.Members |         
+        foreach { 
+            $member = $_
+            new-object [IdentityDescriptor] $member.IdentityType $member.Identifier }
     
     return $identityService.ReadIdentities($identityDescriptors, 'Expanded', 'None')
 }
@@ -227,6 +236,18 @@ function Get-TeamProjectCollectionGroupMembership
         [string]$collectionName,
         [Parameter(Mandatory=$true, Position=3)]
         [string]$groupName)
+
+    # select the first matching team project collection group
+    $teamProjectCollectionGroup = Get-TeamProjectCollectionGroups $uri, $collectionName | 
+        where { $_.DisplayName -eq $groupName } |
+        select $_ -First 1
+
+    $tfsTeamProjectCollection = Get-TfsTeamProjectCollection -uri $uri -collectionName $collectionName
+    $identityService = $tfsTeamProjectCollection.GetService([IIdentityManagementService])
+    $identityDescriptors = $teamProjectGroup.Members |         
+        new-object [IdentityDescriptor] $_.IdentityType $_.Identifier
+
+    return $identityService.ReadIdentities($identityDescriptors, 'Expanded', 'None')
 }
 
 function Get-TeamFoundationConfgiurationServerGroupMembership
@@ -237,4 +258,20 @@ function Get-TeamFoundationConfgiurationServerGroupMembership
         [uri]$uri,
         [Parameter(Mandatory=$true, Position=3)]
         [string]$groupName)
+    
+    $teamFoundationConfigurationServerGroup = Get-TeamFoundationConfigurationServerGroups -uri $uri |
+        where { $_.DisplayName -eq $groupName } |
+        select $_ -First 1
+    
+    # create the team foundation server configuration 
+    $teamFoundationConfigurationServer = Get-TfsConfigurationServer $uri
+
+    # get identity service from the team foundation configuration server#
+    $identityService = $teamFoundationConfigurationServer.GetService([IIdentityManagementService])
+
+    # formulate query using the member identity type and 
+    $identityDescriptors = $teamProjectGroup.Members |         
+        new-object [IdentityDescriptor] $_.IdentityType $_.Identifier
+
+    return $identityService.ReadIdentities($identityDescriptors, 'Expanded', 'None')
 }

@@ -159,7 +159,12 @@ function Get-TeamProjectCollectionGroups
     $identityManagementService = $teamProjectCollection.GetService([IIdentityManagementService])
 
     # use the identity management service to return the list of project collection groups
-    return $identityManagementService.ListApplicationGroups($null, 'None')
+    $teamProjectCollectionApplicationGroups = $identityManagementService.ListApplicationGroups($null, 'None')        
+    
+    $teamProjectCollectionGroupDescriptorArray = $teamProjectCollectionApplicationGroups |
+        select -ExpandProperty Descriptor
+        
+    return $identityManagementService.ReadIdentities($teamProjectCollectionGroupDescriptorArray, 'Expanded', 'ExtendedProperties')
 }
 
 <# Get all Groups for the Project #>
@@ -190,8 +195,6 @@ function Get-TeamProjectGroups
     # use the identity management service to return the list of project groups
     $teamProjectApplicationGroups = $identityManagementService.ListApplicationGroups($project.Uri, 'None')
 
-    $teamProjectScopeName = $identityManagementService.GetScopeName($project.Uri);
-
     $teamProjectGroupDescriptorArray = $teamProjectApplicationGroups |
         select -ExpandProperty Descriptor
         
@@ -212,18 +215,14 @@ function Get-TeamProjectGroupMembership
         [string]$groupName)
     
     # select the first matching team project group 
-    $teamProjectGroup = Get-TeamProjectGroups $uri, $collectionName, $projectName | 
+    $teamProjectGroup = Get-TeamProjectGroups $uri $collectionName $projectName | 
         where { $_.DisplayName -eq $groupName} |
         select -First 1
     
-    $tfsTeamProjectCollection = Get-TfsTeamProjectCollection -uri $uri -collectionName $collectionName
+    $tfsTeamProjectCollection = Get-TfsTeamProjectCollection $uri $collectionName
     $identityService = $tfsTeamProjectCollection.GetService([IIdentityManagementService])
-    $identityDescriptors = $teamProjectGroup.Members |         
-        foreach { 
-            $member = $_
-            new-object [IdentityDescriptor] $member.IdentityType $member.Identifier }
     
-    return $identityService.ReadIdentities($identityDescriptors, 'Expanded', 'None')
+    return $identityService.ReadIdentities($teamProjectGroup.Members, 'Expanded', 'None')
 }
 
 function Get-TeamProjectCollectionGroupMembership
@@ -238,16 +237,14 @@ function Get-TeamProjectCollectionGroupMembership
         [string]$groupName)
 
     # select the first matching team project collection group
-    $teamProjectCollectionGroup = Get-TeamProjectCollectionGroups $uri, $collectionName | 
-        where { $_.DisplayName -eq $groupName } |
-        select $_ -First 1
+    $teamProjectCollectionGroup = Get-TeamProjectCollectionGroups $uri $collectionName | 
+        where { $_.DisplayName -eq $groupName } | 
+        select -First 1
 
     $tfsTeamProjectCollection = Get-TfsTeamProjectCollection -uri $uri -collectionName $collectionName
     $identityService = $tfsTeamProjectCollection.GetService([IIdentityManagementService])
-    $identityDescriptors = $teamProjectGroup.Members |         
-        new-object [IdentityDescriptor] $_.IdentityType $_.Identifier
 
-    return $identityService.ReadIdentities($identityDescriptors, 'Expanded', 'None')
+    return $identityService.ReadIdentities($teamProjectCollectionGroup.Members, 'Expanded', 'None')
 }
 
 function Get-TeamFoundationConfgiurationServerGroupMembership

@@ -1,3 +1,4 @@
+$ErrorActionPreference = "Stop"
 param(
     [Parameter(Position = 0, Mandatory = $True)]
     [string] $startDirectory, 

@@ -1,9 +1,9 @@
-$ErrorActionPreference = "Stop"
 param(
     [Parameter(Position = 0, Mandatory = $True)]
     [string] $startDirectory, 
     [Parameter(Position = 1, Mandatory = $True)]
     [string] $outputDirectory)
+$ErrorActionPreference = "Stop"
 
 function ConvertFrom-md($mdText){
   $response = Invoke-WebRequest -Uri 'https://api.github.com/markdown/raw' -Method Post -body "$mdText" -ContentType "text/plain"

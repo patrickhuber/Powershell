@@ -46,7 +46,7 @@ function Recurse-Folder
     [Parameter(Position = 1, Mandatory = $True)]
     [string]$outputDirectory)   
 
-    $files = [System.IO.Directory]::EnumerateFiles($startDirectory)
+    $files = [System.IO.Directory]::EnumerateFiles($startDirectory, "*.md")
     foreach($file in $files)
     {
         md2html $file $outputDirectory

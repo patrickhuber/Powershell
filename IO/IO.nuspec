@@ -16,6 +16,9 @@
     </dependencies>
   </metadata>
   <files>
-	<file src="tools\ChocolateyInstall.ps1" target="tools"/>
+	  <file src="tools\ChocolateyInstall.ps1" target="tools"/>
+    <file src="*.ps1"/>
+    <file src="*.psm1"/>
+    <file src="*.psd1"/>
   </files>
 </package>

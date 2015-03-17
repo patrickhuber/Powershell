@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>IO</id>
+    <title>IO Powershell Package</title>
+    <version>1.0.0</version>
+    <authors>Patrick Huber</authors>
+    <owners>Patrick Huber</owners>
+    <summary>A package that provides base IO functions not supplied by normal System.IO.</summary>
+    <description>A package that provides base IO functions not supplied by normal System.IO</description>        
+    <copyright>Patrick Huber 2015</copyright>    
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+	<dependencies>
+      <dependency id="PsGet" />
+    </dependencies>
+  </metadata>
+  <files>
+	<file src="tools\ChocolateyInstall.ps1" target="tools"/>
+  </files>
+</package>

@@ -7,7 +7,7 @@ function Invoke-InitiateReleaseFromBuild
         [int] $portNumber = 1000,               
 		[string] $apiVersion = '2.0',
         [Parameter(Mandatory=$true)]
-		[string] $tfsServerUrl,
+		[string] $teamFoundationServerUrl,
         [Parameter(Mandatory=$true)]
 		[string] $teamProject,
         [Parameter(Mandatory=$true)]
@@ -15,15 +15,23 @@ function Invoke-InitiateReleaseFromBuild
         [Parameter(Mandatory=$true)]
 		[string] $buildNumber,
         [Parameter(Mandatory=$true)]
-		[string] $targetStage
+		[string] $targetStageName
 	)
-    $queryParameters = @{ "releaseTemplateName" = $releaseTemplateName}
+
+    $queryParameters = @{         
+        "teamFoundationServerUrl"=$teamFoundationServerUrl;
+        "teamProject"=$teamProject;
+        "buildDefinition"=$buildDefinition;
+        "buildNumber"=$buildNumber;
+        "targetStageName"=$targetStageName;
+    }
+
 	$uri = Get-ReleaseApiUri `
         -scheme $scheme `
         -hostName $hostName `
         -portNumber $portNumber `
         -apiVersion $apiVersion `
-        -action "AbandonRelease" `
+        -action "InitiateReleaseFromBuild" `
         -queryParameters $queryParameters
 
     Invoke-WebRequest -Uri $uri -Method Get

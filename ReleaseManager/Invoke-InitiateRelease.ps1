@@ -17,7 +17,7 @@ function Invoke-InitiateRelease
         -hostName $hostName `
         -portNumber $portNumber `
         -apiVersion $apiVersion `
-        -action "AbandonRelease" `
+        -action "InitiateRelease" `
         -queryParameters $queryParameters
 
     Invoke-WebRequest -Uri $uri -Method Get

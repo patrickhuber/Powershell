@@ -1,5 +1,6 @@
 function Get-ReleaseApiUri
-{
+{	
+    [CmdletBinding()]  
 	param(		
         [Parameter(Mandatory=$true)]
         [string] $scheme = 'http',

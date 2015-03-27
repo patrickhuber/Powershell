@@ -1,5 +1,6 @@
 function Invoke-InitiateRelease
 {
+	[CmdletBinding()]  
 	param(
         [Parameter(Mandatory=$true)]
         [string] $scheme = 'http',

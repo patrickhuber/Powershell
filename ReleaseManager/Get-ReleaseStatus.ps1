@@ -1,5 +1,6 @@
 function Get-ReleaseStatus
 {
+    [CmdletBinding()]
 	param(
         [Parameter(Mandatory=$true)]
         [string] $scheme = 'http',

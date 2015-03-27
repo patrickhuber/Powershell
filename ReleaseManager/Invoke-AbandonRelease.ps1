@@ -1,5 +1,6 @@
 function Invoke-AbandonRelease
 {
+    [CmdletBinding()]  
 	param(
         [Parameter(Mandatory=$true)]
         [string] $scheme = 'http',

@@ -1,5 +1,6 @@
 function Invoke-StopRelease
 {
+	[CmdletBinding()]  
 	param(
         [Parameter(Mandatory=$true)]
         [string] $scheme = 'http',

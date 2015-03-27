@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>ReleaseManager</id>
+    <version>1.0.0</version>
+    <title>ReleaseManager Powershell Package</title>
+    <authors>Patrick Huber</authors>
+    <owners>Patrick Huber</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A package that provides a powershell module for managing releases in Microsoft Release Manager using the API.</description>
+    <summary>A package that provides a powershell module for managing releases in Microsoft Release Manager using the API.</summary>
+    <copyright>Patrick Huber 2015</copyright>
+    <dependencies>
+      <dependency id="PsGet" />
+    </dependencies>
+  </metadata>
+</package>

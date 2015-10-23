@@ -65,4 +65,22 @@ function Recurse-Folder
     }
 }
 
+function Resolve-PathWithScriptRoot
+{
+    param(
+        [string]$directory
+    )
+    # if the source path is relative, join with the script root
+    if(-not (split-path $directory -IsAbsolute))
+    {
+        return Join-Path $PSScriptRoot $directory
+    }
+    return $directory
+}
+
+# resolve inputs
+$startDirectory = Resolve-PathWithScriptRoot $startDirectory
+$outputDirectory = Resolve-PathWithScriptRoot $outputDirectory
+
+# run the processing
 Recurse-Folder $startDirectory $outputDirectory

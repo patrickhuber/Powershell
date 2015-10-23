@@ -2,6 +2,7 @@ param(
     [string] $sourcePath,
     [uri] $targetUri
 )
+$ErrorActionPreference = "Stop"
 
 function UploadRecursive($targetUri, $path, $filter = "*.*")
 {
@@ -64,5 +65,6 @@ function Publish-File {
 if(-not (split-path $sourcePath -IsAbsolute))
 {
     $sourcePath = Join-Path $PSScriptRoot $sourcePath
-    UploadRecursive -targetUri $targetUri -path $sourcePath -filter "*.*"
 }
+
+UploadRecursive -targetUri $targetUri -path $sourcePath -filter "*.*"

@@ -1,3 +1,7 @@
+---
+layout: default
+title: Welcome to the home page.
+---
 # h1
 ## h2
 ### h3

@@ -71,11 +71,11 @@ function Md2Html
     
     if(test-path $htmlFile)
     {
-        $document | Out-File $htmlFile -Force
+        $document | Out-File $htmlFile -Force | Out-Null
     }
     else
     {
-        $document | New-Item $htmlFile -ItemType file -Force
+        $document | New-Item $htmlFile -ItemType file -Force | Out-Null
     }
 }
 

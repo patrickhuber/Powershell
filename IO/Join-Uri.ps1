@@ -7,7 +7,6 @@ function Join-Uri
         [uri]$uri, 
         [Parameter(ParameterSetName="Uri", Mandatory=$true, Position=1)]
         [string]$childPath)
-    $combinedPath = [system.io.path]::Combine($uri.AbsoluteUri, $childPath)
-    $combinedPath = $combinedPath.Replace('\', '/')
+    $combinedPath = [System.Uri]::new($uri, $childPath)
     return New-Object uri $combinedPath
 }
